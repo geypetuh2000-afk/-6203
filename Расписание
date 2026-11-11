@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание 6203 — Академия МВД</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f8fafc; }
+        .android-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Android Material Header -->
+    <header class="bg-indigo-700 text-white sticky top-0 z-50 android-shadow">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <span class="text-xs uppercase tracking-wider text-indigo-200 font-medium">СЭФ • Академия МВД</span>
+                <h1 class="text-xl font-bold">Группа 6203</h1>
+            </div>
+            <div class="bg-indigo-600 px-3 py-1 rounded-full text-xs font-semibold">
+                1 Семестр
+            </div>
+        </div>
+    </header>
+
+    <!-- Day Selector Tabs -->
+    <nav class="bg-white border-b border-slate-200 sticky top-[72px] z-40 overflow-x-auto whitespace-nowrap px-2 py-2 flex space-x-2 max-w-md mx-auto w-full">
+        <button onclick="setDay('Понедельник')" id="btn-Понедельник" class="day-tab px-4 py-2 rounded-full text-sm font-medium transition bg-indigo-600 text-white shadow-sm">Понедельник</button>
+        <button onclick="setDay('Вторник')" id="btn-Вторник" class="day-tab px-4 py-2 rounded-full text-sm font-medium transition bg-slate-100 text-slate-600 hover:bg-slate-200">Вторник</button>
+        <button onclick="setDay('Среда')" id="btn-Среда" class="day-tab px-4 py-2 rounded-full text-sm font-medium transition bg-slate-100 text-slate-600 hover:bg-slate-200">Среда</button>
+        <button onclick="setDay('Четверг')" id="btn-Четверг" class="day-tab px-4 py-2 rounded-full text-sm font-medium transition bg-slate-100 text-slate-600 hover:bg-slate-200">Четверг</button>
+        <button onclick="setDay('Пятница')" id="btn-Пятница" class="day-tab px-4 py-2 rounded-full text-sm font-medium transition bg-slate-100 text-slate-600 hover:bg-slate-200">Пятница</button>
+        <button onclick="setDay('Суббота')" id="btn-Суббота" class="day-tab px-4 py-2 rounded-full text-sm font-medium transition bg-slate-100 text-slate-600 hover:bg-slate-200">Суббота</button>
+    </nav>
+
+    <!-- Main Schedule Container -->
+    <main class="max-w-md mx-auto w-full p-4 flex-grow pb-24">
+        <div id="schedule-container" class="space-y-4">
+            <!-- Content will be injected dynamically -->
+        </div>
+    </main>
+
+    <!-- Android Bottom Navigation Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 max-w-md mx-auto flex justify-around py-2 z-50 android-shadow">
+        <button onclick="filterType('all')" class="flex flex-col items-center text-indigo-600 text-xs font-medium">
+            <i class="fas fa-calendar-days text-lg mb-1"><span>Все</span></i>
+        </button>
+        <button onclick="filterType('пр')" class="flex flex-col items-center text-slate-500 hover:text-emerald-600 text-xs font-medium">
+            <i class="fas fa-laptop-code text-lg mb-1"><span>Практики</span></i>
+        </button>
+        <button onclick="filterType('с')" class="flex flex-col items-center text-slate-500 hover:text-amber-600 text-xs font-medium">
+            <i class="fas fa-users text-lg mb-1"><span>Семинары</span></i>
+        </button>
+        <button onclick="filterType('зачет')" class="flex flex-col items-center text-slate-500 hover:text-rose-600 text-xs font-medium">
+            <i class="fas fa-flag-checkered text-lg mb-1"><span>Зачеты</span></i>
+        </button>
+    </div>
+
+    <script>
+        // Точное расписание для группы 6203 на основе файла 1_sef.xls
+        const scheduleData = {
+            "Понедельник": [
+                { time: "08:30 - 09:50", items: [
+                    { date: "Сент. (нед. 2)", title: "Философия т. 1.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 3)", title: "Ин. язык т. 1.4 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "пр" },
+                    { date: "Сент. (нед. 4)", title: "Суд-во т. 2.1 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ИГПЗС т. 7.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ИБГ т. 1.7 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Ин. язык т. 3 к.р.", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "зачет" },
+                    { date: "Ноябрь", title: "ОПиП т. 9 пр", teacher: "Жуковская М.А.", room: "ауд. 415", type: "пр" },
+                    { date: "Ноябрь", title: "ППФП т. 9.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "Совр. политэкономия т. 3.1.3 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Огн. подг. т. 5.4.4 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" }
+                ]},
+                { time: "10:00 - 11:20", items: [
+                    { date: "Сент. (нед. 2)", title: "Логика т. 1/2 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 3)", title: "ППФП т. 25.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 4)", title: "Огн. подг. т. 5.1.2 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Октябрь", title: "ОПиП т. 3.2 с", teacher: "Жуковская М.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ППФП т. 11.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Октябрь", title: "Огн. подг. т. 5.2.4 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Октябрь", title: "Огн. подг. т. 5.3.1 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Ноябрь", title: "Ин. язык т. 4.2 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "пр" },
+                    { date: "Ноябрь", title: "ОТП т. 8.4 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Ин. язык т. 5.1 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 401", type: "пр" },
+                    { date: "Декабрь", title: "Логика т. 6 с", teacher: "Дубовик К.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Ин. язык т. 5-6 к.р.", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 412", type: "зачет" },
+                    { date: "Декабрь", title: "Совр. политэкономия т. 3.3.3 с", teacher: "Веруш А.И.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "11:30 - 12:50", items: [
+                    { date: "Сент. (нед. 2)", title: "Суд-во т. 1.1 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 4)", title: "Ин. язык т. 2.2 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 407", type: "пр" },
+                    { date: "Октябрь", title: "Философия т. 2.6 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Ин. язык т. 3.3 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 413", type: "пр" },
+                    { date: "Октябрь", title: "ОТП т. 7.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ППФП т. 8.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Ноябрь", title: "ИГПЗС т. 10.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ОТП т. 10.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Огн. подг. т. 5.4.1 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Декабрь", title: "Огн. подг. т. 5.4.3 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Декабрь", title: "ППФП т. 14.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "ИБГ т. 3.4 с", teacher: "Сувалов О.Н.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "14:20 - 15:40", items: [
+                    { date: "Ноябрь", title: "Ин. язык т. 5.3 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 401", type: "пр" },
+                    { date: "Ноябрь", title: "Ин. язык т. 5.5 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 412", type: "пр" },
+                    { date: "Декабрь", title: "ППФП т. 21.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" }
+                ]},
+                { time: "15:50 - 17:10", items: [
+                    { date: "Декабрь", title: "Первая помощь (Зачет)", teacher: "Матвеенко М.Ю.", room: "ауд. 415", type: "зачет" }
+                ]}
+            ],
+            "Вторник": [
+                { time: "08:30 - 09:50", items: [
+                    { date: "Сент. (нед. 2)", title: "Философия т. 2.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 3)", title: "ППФП т. 6.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 4)", title: "ОООП т. 4 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 413 / 415", type: "пр" },
+                    { date: "Октябрь", title: "ИГПЗС т. 8.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ОТП т. 8.3 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ИГПЗС т. 9.6 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ОПиП т. 10 пр", teacher: "Жуковская М.А.", room: "ауд. 415", type: "пр" },
+                    { date: "Ноябрь", title: "ИГПЗС т. 12.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИГПЗС т. 14.4 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Совр. политэкономия т. 3.2.3 с", teacher: "Веруш А.И.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Философия т. 11.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "10:00 - 11:20", items: [
+                    { date: "Сент. (нед. 1)", title: "Ин. язык т. 1.2 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 413", type: "пр" },
+                    { date: "Сент. (нед. 3)", title: "ОТП т. 4.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 4)", title: "ОООП т. 4 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 413 / 415", type: "пр" },
+                    { date: "Октябрь", title: "ОТП т. 6.4 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Конст. право т. 6-8 ч. 3 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Огн. подг. т. 5.3.3 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Ноябрь", title: "Философия т. 5.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ИБГ т. 2.1-2.2 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Суд-во т. 8 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Ин. язык т. 6.2 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 412", type: "пр" },
+                    { date: "Декабрь", title: "ППФП т. 14.3 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "ППФП т. 14.5 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" }
+                ]},
+                { time: "11:30 - 12:50", items: [
+                    { date: "Сент. (нед. 1)", title: "ППФП т. 24.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 3)", title: "Огн. подг. т. 5.2.1 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Октябрь", title: "Ин. язык т. 3.1 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 316", type: "пр" },
+                    { date: "Октябрь", title: "ППФП т. 10.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Октябрь", title: "Философия т. 3.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ИГПЗС т. 9.4 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ППФП т. 18.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Ноябрь", title: "Конст. право т. 9-13 ч. 2 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Конст. право т. 9-13 ч. 3 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Конст. право т. 9-13 ч. 5 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ППФП т. 19.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "Ин. язык т. 6.4 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "пр" }
+                ]},
+                { time: "14:20 - 15:40", items: [
+                    { date: "Октябрь", title: "Суд-во т. 3.2 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ППФП т. 16.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Ноябрь", title: "Ин. язык т. 6.1 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 412", type: "пр" },
+                    { date: "Декабрь", title: "ИБГ т. 3.1 с", teacher: "Сувалов О.Н.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "15:50 - 17:10", items: [
+                    { date: "Сент. (нед. 2)", title: "Начальная проф. подготовка (Зачет)", teacher: "Чудаков В.В., Семенова Е.Л.", room: "ауд. 415", type: "зачет" },
+                    { date: "Ноябрь", title: "ОООП (Зачет)", teacher: "Луцык А.Н.", room: "ауд. 415", type: "зачет" },
+                    { date: "Декабрь", title: "ОТП (Зачет)", teacher: "Протащик П.И.", room: "ауд. 415", type: "зачет" }
+                ]}
+            ],
+            "Среда": [
+                { time: "08:30 - 09:50", items: [
+                    { date: "Сент. (нед. 1)", title: "ИГПЗС т. 3.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 2)", title: "ОООП т. 3 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 413 / 415", type: "пр" },
+                    { date: "Сент. (нед. 4)", title: "Ин. язык т. 2.4 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 413", type: "пр" },
+                    { date: "Октябрь", title: "ОООП т. 5 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 413 / 415", type: "пр" },
+                    { date: "Октябрь", title: "ППФП т. 12.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Ноябрь", title: "ППФП т. 17.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "ОТП т. 12.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ППФП т. 14.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "ППФП (Зачет)", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "зачет" }
+                ]},
+                { time: "10:00 - 11:20", items: [
+                    { date: "Сент. (нед. 1)", title: "ИГПЗС т. 2.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 2)", title: "ОПиП т. 1.3 пр", teacher: "Жуковская М.А.", room: "ауд. 415", type: "пр" },
+                    { date: "Сент. (нед. 2)", title: "ОООП т. 3 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 413 / 415", type: "пр" },
+                    { date: "Сент. (нед. 3)", title: "ОООП т. 4 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 412 / 415", type: "пр" },
+                    { date: "Сент. (нед. 4)", title: "ИГПЗС т. 6.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ОООП т. 5 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 413 / 415", type: "пр" },
+                    { date: "Октябрь", title: "Конст. право т. 1-8 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Суд-во т. 7.1 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Суд-во т. 7.2 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ИБГ т. 2.3-2.4/1 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Конст. право т. 14-15 ч. 1 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Философия т. 8.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИГПЗС т. 15.5 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "11:30 - 12:50", items: [
+                    { date: "Сент. (нед. 1)", title: "Логика т. 1/1 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 2)", title: "Ин. язык т. 1.3 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 316", type: "пр" },
+                    { date: "Сент. (нед. 3)", title: "Совр. политэкономия т. 1.1.2 с", teacher: "Веремеев Н.Ю.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 4)", title: "ППФП т. 6.3 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Октябрь", title: "ППФП т. 11.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Октябрь", title: "Суд-во т. 3.1 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ОООП т. 6 с", teacher: "Луцык А.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Огн. подг. т. 5.3.2 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Ноябрь", title: "Ин. язык т. 4.4 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 401", type: "пр" },
+                    { date: "Ноябрь", title: "Огн. подг. т. 5.3.4 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Ноябрь", title: "Конст. право т. 9-13 ч. 4 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Огн. подг. т. 5.4.2 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Декабрь", title: "Конст. право т. 1-15 коллоквиум", teacher: "Луговский С.Г.", room: "ауд. 415", type: "зачет" },
+                    { date: "Декабрь", title: "ИБГ т. 3.5 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "14:20 - 15:40", items: [
+                    { date: "Октябрь", title: "ОООП т. 5 с", teacher: "Луцык А.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Конст. право т. 6-8 ч. 1 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ИБГ т. 1.9 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Логика т. 4-5/3 с", teacher: "Дубовик К.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИГПЗС т. 18-20.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" }
+                ]}
+            ],
+            "Четверг": [
+                { time: "08:30 - 09:50", items: [
+                    { date: "Сент. (нед. 1)", title: "Ин. язык т. 1.1 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "пр" },
+                    { date: "Сент. (нед. 2)", title: "ОТП т. 2.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 4)", title: "Логика т. 2/2 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ППФП т. 7.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Октябрь", title: "Конст. право т. 1-5 ч. 1 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Логика т. 3/1 с", teacher: "Стальбовский В.В.", room: "ауд. 403", type: "с" },
+                    { date: "Октябрь", title: "ППФП т. 12.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Октябрь", title: "ОООП т. 6 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 401 / 415", type: "пр" },
+                    { date: "Ноябрь", title: "ППФП т. 18.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Ноябрь", title: "ППФП т. 9.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Ноябрь", title: "Совр. политэкономия т. 3.1.2 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Конст. право т. 14-15 ч. 3 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Огн. подг. т. 5.4.5 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" }
+                ]},
+                { time: "10:00 - 11:20", items: [
+                    { date: "Сент. (нед. 1)", title: "ППФП т. 4.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 2)", title: "ИБГ т. 1.1 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 3)", title: "Логика т. 2/1 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 4)", title: "ППФП т. 6.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 5)", title: "Совр. политэкономия т. 1.2 с", teacher: "Стельмах В.И.", room: "ауд. 403", type: "с" },
+                    { date: "Октябрь", title: "Ин. язык т. 3.2 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 412", type: "пр" },
+                    { date: "Октябрь", title: "Конст. право т. 1-5 ч. 3 с", teacher: "Луговский С.Г.", room: "ауд. 403", type: "с" },
+                    { date: "Октябрь", title: "Логика т. 3/2 с", teacher: "Дубовик К.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ИБГ т. 1.8 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Конст. право т. 9-13 ч. 1 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Логика т. 4-5/1 с", teacher: "Дубовик К.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ОТП т. 11.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Философия т. 7.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Ин. язык т. 6.5 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 401", type: "пр" },
+                    { date: "Декабрь", title: "Философия т. 10.3 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Конст. право (Зачет)", teacher: "Луговский С.Г.", room: "ауд. 415", type: "зачет" }
+                ]},
+                { time: "11:30 - 12:50", items: [
+                    { date: "Сент. (нед. 2)", title: "Суд-во т. 1.2 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 3)", title: "ИГПЗС т. 4.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 5)", title: "ОТП т. 5.2 с", teacher: "Протащик П.И.", room: "ауд. 407", type: "с" },
+                    { date: "Октябрь", title: "ОТП т. 6.5 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Философия т. 4.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Совр. политэкономия т. 2.2 с", teacher: "Стельмах В.И.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Совр. политэкономия т. 2.3.2 с", teacher: "Стальбовский В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Ин. язык т. 6.3 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 412", type: "пр" },
+                    { date: "Декабрь", title: "ОТП т. 13.4 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "14:20 - 15:40", items: [
+                    { date: "Сент. (нед. 2)", title: "ОООП т. 2 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 413 / 415", type: "пр" },
+                    { date: "Ноябрь", title: "ИГПЗС т. 12.3 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ППФП т. 20.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "ППФП т. 14.4 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" }
+                ]},
+                { time: "15:50 - 17:10", items: [
+                    { date: "Декабрь", title: "Логика (Диф. зачет)", teacher: "Дубовик К.Н.", room: "ауд. 415", type: "зачет" },
+                    { date: "Декабрь", title: "Суд-во (Диф. зачет)", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "зачет" }
+                ]}
+            ],
+            "Пятница": [
+                { time: "08:30 - 09:50", items: [
+                    { date: "Сент. (нед. 1)", title: "ОООП т. 1 с", teacher: "Луцык А.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 2)", title: "ППФП т. 24.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 3)", title: "ППФП т. 25.1 пр", teacher: "Макась М.М., Чекуть А.Г., Кураленя С.Л.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 5)", title: "ИБГ т. 1.6 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Огн. подг. т. 5.2.3 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Октябрь", title: "Ин. язык т. 4.3 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "пр" },
+                    { date: "Ноябрь", title: "Ин. язык т. 4 к.р.", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "зачет" },
+                    { date: "Ноябрь", title: "Конст. право т. 9-13 ч. 6 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Конст. право т. 9-15 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "10:00 - 11:20", items: [
+                    { date: "Сент. (нед. 1)", title: "Огн. подг. т. 5.1.1 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Сент. (нед. 2)", title: "Совр. политэкономия т. 1.1.1 с", teacher: "Веремеев Н.Ю.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 3)", title: "ИБГ т. 1.3 с", teacher: "Данилов В.А.", room: "ауд. 403", type: "с" },
+                    { date: "Сент. (нед. 5)", title: "Суд-во т. 2.2 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ОПиП т. 4.2 с", teacher: "Жуковская М.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Ин. язык т. 3.4 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 505", type: "пр" },
+                    { date: "Октябрь", title: "Конст. право т. 6-8 ч. 2 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ОПиП т. 8 пр", teacher: "Жуковская М.А.", room: "ауд. 415", type: "пр" },
+                    { date: "Ноябрь", title: "Суд-во т. 6 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "ОТП т. 9.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Огн. подг. т. 5.3.5 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Ноябрь", title: "ИБГ т. 2.3-2.4/2 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИБГ т. 2.5-2.6 с", teacher: "Данилов В.А.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ОТП т. 13.5 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "11:30 - 12:50", items: [
+                    { date: "Сент. (нед. 1)", title: "ОПиП т. 1.2 с", teacher: "Жуковская М.А.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 2)", title: "ОТП т. 2.3 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 3)", title: "ОТП т. 3.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 4)", title: "Ин. язык т. 2.3 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 413", type: "пр" },
+                    { date: "Сент. (нед. 5)", title: "Ин. язык т. 2 к.р.", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 407", type: "зачет" },
+                    { date: "Октябрь", title: "ППФП т. 10.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Октябрь", title: "ОПиП т. 7 с", teacher: "Жуковская М.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Совр. политэкономия т. 2.1 с", teacher: "Стельмах В.И.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Ин. язык т. 5.2 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "пр" },
+                    { date: "Ноябрь", title: "Ин. язык т. 5.4 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "пр" },
+                    { date: "Декабрь", title: "Суд-во т. 9 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИБГ т. 3.2-3.3 с", teacher: "Сувалов О.Н.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "14:20 - 15:40", items: [
+                    { date: "Сент. (нед. 4)", title: "Философия т. 2.4 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Ин. язык т. 4.1 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 408", type: "пр" },
+                    { date: "Ноябрь", title: "ППФП т. 16.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "ИГПЗС т. 14.5 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "15:50 - 17:10", items: [
+                    { date: "Сент. (нед. 4)", title: "Огн. подг. т. 5.2.2 пр", teacher: "Буров А.В., Кураленя С.Л.", room: "Тир", type: "пр" },
+                    { date: "Ноябрь", title: "ОПиП (Зачет)", teacher: "Жуковская М.А.", room: "ауд. 415", type: "зачет" },
+                    { date: "Декабрь", title: "Ин. язык (Зачет)", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 411", type: "зачет" }
+                ]}
+            ],
+            "Суббота": [
+                { time: "08:30 - 09:50", items: [
+                    { date: "Сент. (нед. 1)", title: "ППФП т. 22.1 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Сент. (нед. 2)", title: "ОООП т. 3 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 408 / 415", type: "пр" },
+                    { date: "Сент. (нед. 4)", title: "ИГПЗС т. 5.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Конст. право т. 1-5 ч. 2 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ОПиП т. 5 с", teacher: "Жуковская М.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Первая помощь т. 4 пр", teacher: "Семенов В.В.", room: "ауд. 415", type: "пр" },
+                    { date: "Октябрь", title: "ППФП т. 8.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Ноябрь", title: "ИГПЗС т. 11.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Первая помощь т. 6 пр", teacher: "Семенов В.В.", room: "ауд. 415", type: "пр" },
+                    { date: "Ноябрь", title: "Философия т. 6.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИГПЗС т. 14.6 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Суд-во т. 10 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ОТП т. 8-13 ит. с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "10:00 - 11:20", items: [
+                    { date: "Сент. (нед. 1)", title: "ОТП т. 1.2 с", teacher: "Протащик П.И.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 2)", title: "Первая помощь т. 2 пр", teacher: "Семенов В.В.", room: "ауд. 415", type: "пр" },
+                    { date: "Сент. (нед. 3)", title: "ОПиП т. 2.2 с", teacher: "Жуковская М.А.", room: "ауд. 415", type: "с" },
+                    { date: "Сент. (нед. 4)", title: "Первая помощь т. 3 с", teacher: "Семенов В.В.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ОООП т. 5 пр", teacher: "Луцык А.Н., Соколовская О.Г.", room: "ауд. 401 / 415", type: "пр" },
+                    { date: "Октябрь", title: "Первая помощь т. 3 пр", teacher: "Семенов В.В.", room: "ауд. 415", type: "пр" },
+                    { date: "Октябрь", title: "Суд-во т. 4 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "Суд-во т. 5 с", teacher: "Бескишкий А.А.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Логика т. 4-5/2 с", teacher: "Дубовик К.Н.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Философия т. 4-5 коллоквиум", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "зачет" },
+                    { date: "Ноябрь", title: "Первая помощь т. 7 пр", teacher: "Семенов В.В.", room: "ауд. 415", type: "пр" },
+                    { date: "Декабрь", title: "Конст. право т. 14-15 ч. 2 с", teacher: "Луговский С.Г.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИГПЗС т. 15.4 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "ИГПЗС т. 17.2 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" }
+                ]},
+                { time: "11:30 - 12:50", items: [
+                    { date: "Сент. (нед. 2)", title: "Ин. язык т. 2.1 пр", teacher: "Барбарчук В.А., Русак В.В.", room: "ауд. 415 / 412", type: "пр" },
+                    { date: "Октябрь", title: "Совр. политэкономия т. 1.3 с", teacher: "Стельмах В.И.", room: "ауд. 415", type: "с" },
+                    { date: "Октябрь", title: "ИГПЗС т. 9.5 с", teacher: "Атливанчик А.П.", room: "ауд. 415", type: "с" },
+                    { date: "Ноябрь", title: "Первая помощь т. 5 пр", teacher: "Семенов В.В.", room: "ауд. 415", type: "пр" },
+                    { date: "Ноябрь", title: "ППФП т. 17.2 пр", teacher: "Макась М.М., Богачев Е.С.", room: "с/з", type: "пр" },
+                    { date: "Декабрь", title: "Первая помощь т. 8 пр", teacher: "Семенов В.В.", room: "ауд. 415", type: "пр" },
+                    { date: "Декабрь", title: "Философия т. 9.2 с", teacher: "Лойко Л.Е.", room: "ауд. 415", type: "с" },
+                    { date: "Декабрь", title: "Первая помощь т. 9 с", teacher: "Семенов В.В.", room: "ауд. 415", type: "с" }
+                ]}
+            ]
+        };
+
+        let currentDay = 'Понедельник';
+        let currentFilter = 'all';
+
+        function setDay(day) {
+            currentDay = day;
+            document.querySelectorAll('.day-tab').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            const activeBtn = document.getElementById(`btn-${day}`);
+            activeBtn.classList.remove('bg-slate-100', 'text-slate-600');
+            activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+            renderSchedule();
+        }
+
+        function filterType(type) {
+            currentFilter = type;
+            renderSchedule();
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById('schedule-container');
+            const daySlots = scheduleData[currentDay] || [];
+            container.innerHTML = '';
+
+            let hasVisibleSlots = false;
+
+            daySlots.forEach(slot => {
+                const filteredItems = slot.items.filter(item => {
+                    if (currentFilter === 'all') return true;
+                    return item.type === currentFilter;
+                });
+
+                if (filteredItems.length === 0) return;
+                hasVisibleSlots = true;
+
+                const slotEl = document.createElement('div');
+                slotEl.className = 'bg-white rounded-xl p-4 android-shadow border border-slate-100';
+
+                let itemsHtml = '';
+                filteredItems.forEach(item => {
+                    let badgeColor = 'bg-blue-100 text-blue-800';
+                    let typeText = 'Лекция';
+                    if (item.type === 'пр') {
+                        badgeColor = 'bg-emerald-100 text-emerald-800';
+                        typeText = 'Практика';
+                    } else if (item.type === 'с') {
+                        badgeColor = 'bg-amber-100 text-amber-800';
+                        typeText = 'Семинар';
+                    } else if (item.type === 'зачет') {
+                        badgeColor = 'bg-rose-100 text-rose-800';
+                        typeText = 'Зачет / К.Р.';
+                    }
+
+                    itemsHtml += `
+                        <div class="py-3 border-b border-slate-100 last:border-none">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${badgeColor}">${typeText}</span>
+                                <span class="text-xs text-slate-400 font-medium">${item.date}</span>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-base mb-1">${item.title}</h3>
+                            <div class="flex justify-between text-xs text-slate-500">
+                                <span><i class="fas fa-chalkboard-user mr-1 text-slate-400"></i>${item.teacher}</span>
+                                <span class="font-medium text-indigo-600"><i class="fas fa-location-dot mr-1"></i>${item.room}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                slotEl.innerHTML = `
+                    <div class="flex items-center text-indigo-700 font-bold text-sm mb-2 pb-2 border-b border-indigo-50">
+                        <i class="far fa-clock mr-2"></i> ${slot.time}
+                    </div>
+                    <div class="divide-y divide-slate-100">
+                        ${itemsHtml}
+                    </div>
+                `;
+                container.appendChild(slotEl);
+            });
+
+            if (!hasVisibleSlots) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fas fa-mug-hot text-4xl mb-3"></i>
+                        <p class="text-base font-medium">В этот день занятий по данному фильтру нет</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Initial render
+        renderSchedule();
+    </script>
+</body>
+</html>
